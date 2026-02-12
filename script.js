@@ -11,61 +11,91 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Form submission handling
-const contactForm = document.querySelector('.contact-form');
-if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        
-        // Get form values
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const message = this.querySelector('textarea').value;
-        
-        // Log the submission (in a real app, this would send to a server)
-        console.log({
-            name,
-            email,
-            message,
-            timestamp: new Date().toISOString()
-        });
-        
-        // Show success message
-        alert('Thank you for your message! We will get back to you soon.');
-        
-        // Reset form
-        this.reset();
-    });
-}
-
-// Add scroll animation for service cards
+// Scroll reveal animations
 const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
 };
 
-const observer = new IntersectionObserver(function(entries) {
+const revealObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
-document.querySelectorAll('.service-card').forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(card);
+const revealSelectors = [
+    '.service-card',
+    '.featured-item',
+    '.industry-card',
+    '.concept-card',
+    '.process-card',
+    '.product-showcase-card',
+    '.carousel-item',
+    '.why-feature',
+    '.feature-box',
+    '.contact-form',
+    '.contact-hero-content',
+    '.contact-hero-image',
+    '.contact-quick-item'
+];
+
+document.querySelectorAll(revealSelectors.join(',')).forEach(element => {
+    element.classList.add('reveal');
+    revealObserver.observe(element);
 });
 
 // CTA Button click handler
 document.querySelectorAll('.cta-button').forEach(button => {
     button.addEventListener('click', function() {
         const contactSection = document.querySelector('#contact');
-        contactSection.scrollIntoView({ behavior: 'smooth' });
+        if (contactSection) {
+            contactSection.scrollIntoView({ behavior: 'smooth' });
+        }
     });
+});
+
+// Product carousel controls
+document.querySelectorAll('[data-carousel-wrapper]').forEach(wrapper => {
+    const track = wrapper.querySelector('[data-carousel-track]');
+    const prevBtn = wrapper.querySelector('[data-carousel-prev]');
+    const nextBtn = wrapper.querySelector('[data-carousel-next]');
+
+    if (!track || !prevBtn || !nextBtn) {
+        return;
+    }
+
+    if (track.dataset.carouselInitialized === 'true') {
+        return;
+    }
+    track.dataset.carouselInitialized = 'true';
+
+    const getScrollAmount = () => {
+        const item = track.querySelector('.carousel-item');
+        if (!item) {
+            return 0;
+        }
+        const itemWidth = item.getBoundingClientRect().width;
+        const gapValue = parseFloat(getComputedStyle(track).gap || '0');
+        return itemWidth + gapValue;
+    };
+
+    prevBtn.addEventListener('click', () => {
+        track.scrollBy({
+            left: -getScrollAmount(),
+            behavior: 'smooth'
+        });
+    });
+
+    nextBtn.addEventListener('click', () => {
+        track.scrollBy({
+            left: getScrollAmount(),
+            behavior: 'smooth'
+        });
+    });
+
 });
 
 console.log('MSA Website - JavaScript Initialized');
